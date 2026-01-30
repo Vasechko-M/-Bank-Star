@@ -9,6 +9,9 @@
 ## Юнит-тесты
 ### RecommendationsServiceTest
 (ЗДЕСЬ ПРИМЕРЫ! НАДО ИЗМЕНИТЬ!)
+
+
+- ManagerBankStarApplicationTests
 - testCalculateScoreHighRisk
 - testCalculateScoreLowRisk
 - testFilterRecommendations
