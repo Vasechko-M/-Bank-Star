@@ -8,9 +8,13 @@
 ## Структура пакетов
 
 ├── controller
+
 ├── service
+
 ├── repository
+
 ├── model
+
 └── config
 
 ## Code Review правила
