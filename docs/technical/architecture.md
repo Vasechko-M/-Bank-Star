@@ -1,19 +1,11 @@
-# Архитектура системы
-
-## Общая схема
-[Клиент] → [REST API] → [Сервисный слой] → [Репозиторий] → [H2 DB]
-↓
-[Swagger UI]
+# Архитектура
 
 ## Компоненты
-### 1. Controller Layer
-- RecommendationsController - обработка HTTP запросов
-- ResponseEntity для стандартных ответов
+- Controller → Service → Repository → Database
+- REST API с Swagger документацией
+- In-memory H2 для разработки
 
-### 2. Service Layer
-- RecommendationsService - бизнес-логика рекомендаций
-- Расчет скоринга и фильтрация
-
-### 3. Repository Layer
-- RecommendationsRepository - доступ к данным
-- Spring Data JPA
+## Поток данных
+Клиент → REST API → Сервисный слой → База данных
+                      ↓
+                Логика рекомендаций
