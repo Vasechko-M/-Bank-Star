@@ -6,7 +6,7 @@
 - Настройка code style согласно project rules
 
 ### 2. Конфигурация базы данных
-- H2 in-memory для разработки
+- PostgreSQL для разработки
 - Настройки в application-dev.properties
 
 ## Продуктивная среда
