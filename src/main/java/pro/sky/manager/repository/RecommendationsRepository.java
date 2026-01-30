@@ -34,7 +34,7 @@ public class RecommendationsRepository {
     public double getTotalDeposits(UUID userId, String productType) {
         String sql = "SELECT COALESCE(SUM(t.amount), 0) "
                 + "FROM transactions t "
-                + "JOIN product p ON t.product_id = p.id "
+                + "JOIN products p ON t.product_id = p.id "
                 + "WHERE t.user_id = ? AND p.type = ? AND t.type = 'DEPOSIT'";
         return jdbcTemplate.queryForObject(sql, Double.class, userId, productType);
     }
@@ -45,7 +45,7 @@ public class RecommendationsRepository {
     public double getTotalSpent(UUID userId, String productType) {
         String sql = "SELECT COALESCE(SUM(t.amount), 0) "
                 + "FROM transactions t "
-                + "JOIN product p ON t.product_id = p.id "
+                + "JOIN products p ON t.product_id = p.id "
                 + "WHERE t.user_id = ? AND p.type = ? AND t.type = 'WITHDRAWAL'";
         return jdbcTemplate.queryForObject(sql, Double.class, userId, productType);
     }
@@ -54,7 +54,7 @@ public class RecommendationsRepository {
      * Получает список уникальных типов продуктов, который есть у пользователя.
      */
     public List<String> getProductTypes(UUID userId) {
-        String sql = "SELECT DISTINCT p.type FROM product p "
+        String sql = "SELECT DISTINCT p.type FROM products p "
                 + "JOIN transactions t ON t.product_id = p.id "
                 + "WHERE t.user_id = ?";
         return jdbcTemplate.queryForList(sql, String.class, userId);

@@ -1,7 +1,7 @@
 package pro.sky.manager.component;
 
 import org.springframework.stereotype.Component;
-import pro.sky.manager.model.RecommendationDto;
+import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationRuleSet;
 import pro.sky.manager.repository.RecommendationsRepository;
 
@@ -18,7 +18,7 @@ public class RecommendationSaving implements RecommendationRuleSet {
     }
 
     @Override
-    public Optional<RecommendationDto> check(UUID userId) {
+    public Optional<RecommendationDTO> check(UUID userId) {
         boolean hasDebit = recommendationsRepository.getProductTypes(userId).contains("DEBIT");
         double totalDepositsDebit = recommendationsRepository.getTotalDeposits(userId, "DEBIT");
         double totalDepositsSaving = recommendationsRepository.getTotalDeposits(userId, "SAVING");
@@ -28,7 +28,7 @@ public class RecommendationSaving implements RecommendationRuleSet {
                 (totalDepositsDebit >= 50000 || totalDepositsSaving >= 50000) &&
                 totalDepositsDebit > totalSpendingDebit) {
 
-            return Optional.of(new RecommendationDto(
+            return Optional.of(new RecommendationDTO(
                     UUID.randomUUID(),
                     "Top Saving",
                     "Откройте свою собственную «Копилку» с нашим банком!..."
