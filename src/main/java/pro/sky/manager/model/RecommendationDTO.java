@@ -46,8 +46,7 @@ public class RecommendationDTO {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RecommendationDTO)) return false;
-        RecommendationDTO that = (RecommendationDTO) o;
+        if (!(o instanceof RecommendationDTO that)) return false;
         return Objects.equals(id, that.id) &&
                 Objects.equals(name, that.name) &&
                 Objects.equals(text, that.text);

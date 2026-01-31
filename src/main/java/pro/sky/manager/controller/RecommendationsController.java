@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import pro.sky.manager.model.RecommendationDTO;
-import pro.sky.manager.servise.RecommendationService;
+import pro.sky.manager.service.RecommendationService;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +21,9 @@ public class RecommendationsController {
         this.recommendationService = recommendationService;
     }
 
+    /**
+     * Возвращает список реккомендаций для указанного пользователя, если данный пользователь существует
+     */
     @GetMapping("/recommendation/{user_id}")
     public ResponseEntity<Map<String, Object>> getRecommendations(@PathVariable("user_id") String userIdStr) {
         UUID userId;
@@ -54,7 +57,7 @@ public class RecommendationsController {
         if (!rulesApplicable) {
             return ResponseEntity.ok(Map.of(
                     "user_id", userId.toString(),
-                    "recommendations", null,
+                    "recommendations", "No",
                     "message", "Условия не выполнены"
             ));
         }

@@ -1,4 +1,4 @@
-package pro.sky.manager.servise;
+package pro.sky.manager.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,32 +9,6 @@ import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationRuleSet;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
-//@Service
-//public class RecommendationService {
-//
-//    private final List<RecommendationRuleSet> ruleSets;
-//
-//    public RecommendationService(List<RecommendationRuleSet> ruleSets) {
-//        this.ruleSets = ruleSets;
-//    }
-//
-//    public List<RecommendationDto> getRecommendationsByUserId(UUID userId) {
-//
-//        return ruleSets.stream()
-//                .map(rule -> rule.check(userId))
-//                .filter(Optional::isPresent)
-//                .map(Optional::get)
-//                .collect(Collectors.toList());
-//    }
-//
-//    public boolean checkConditionsForSetRules(UUID userId) {
-//        return ruleSets.stream()
-//                .anyMatch(rule -> rule.check(userId).isPresent());
-//    }
-//}
-
 
 @Service
 public class RecommendationService {
@@ -53,6 +27,9 @@ public class RecommendationService {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Возвращает список реккомендаций по идентификатору пользователя
+     */
     public List<RecommendationDTO> getRecommendationsByUserId (UUID userId) {
 
         List<Map<String, Object>> transactions = jdbcTemplate.queryForList(
@@ -64,12 +41,15 @@ public class RecommendationService {
         for (Map<String, Object> transaction : transactions) {
             for (RecommendationRuleSet ruleSet : ruleSets) {
                 Optional<RecommendationDTO> recommendation = ruleSet.check(userId);
-
                 recommendation.ifPresent(recommendations::add);
             }
         }
         return recommendations;
     }
+
+    /**
+     * Проверяет, удовлетворяет ли переданный пользователь набору правил
+     */
     public boolean checkConditionsForSetRules(UUID userId) {
         return ruleSets.stream()
                 .anyMatch(rule -> rule.check(userId).isPresent());
