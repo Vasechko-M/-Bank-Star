@@ -22,12 +22,11 @@ public class RecommendationsController {
     }
 
     /**
-     * Возвращает список реккомендаций для указанного пользователя, если данный пользователь существует
+     * Возвращает список рекомендаций для указанного пользователя, если данный пользователь существует
      */
     @GetMapping("/recommendation/{user_id}")
     public ResponseEntity<Map<String, Object>> getRecommendations(@PathVariable("user_id") String userIdStr) {
         UUID userId;
-        // Обработка UUID
         try {
             String cleanedUserId = userIdStr.trim().replaceAll("\\s", "");
             if (cleanedUserId.isEmpty()) {
