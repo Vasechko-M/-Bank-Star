@@ -1,17 +1,30 @@
 package pro.sky.manager.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
 import java.util.Objects;
 import java.util.UUID;
 
+@Entity
+@Table(name = "rules")
 public class RecommendationDTO {
     @Schema(description = "ID рекомендации")
+    @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(
+            name = "UUID",
+            strategy = "org.hibernate.id.UUIDGenerator"
+    )
     private UUID id;
     @Schema(description = "Заголовок рекомендации")
     private String name;
     @Schema(description = "Описание рекомендации")
     private String text;
+
+    public RecommendationDTO() {
+    }
 
     public RecommendationDTO(UUID id, String name, String text) {
         this.id = id;

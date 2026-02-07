@@ -12,9 +12,13 @@ import java.util.UUID;
 @Repository
 public class RecommendationsRepository {
     private final JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate rulesJdbcTemplate;
 
-    public RecommendationsRepository(@Qualifier("recommendationsJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    public RecommendationsRepository(
+            @Qualifier("recommendationsJdbcTemplate") JdbcTemplate jdbcTemplate,
+            @Qualifier("rulesJdbcTemplate") JdbcTemplate rulesJdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.rulesJdbcTemplate = rulesJdbcTemplate;
     }
 
     /**
@@ -59,4 +63,11 @@ public class RecommendationsRepository {
                 + "WHERE t.user_id = ?";
         return jdbcTemplate.queryForList(sql, String.class, userId);
     }
+/**
+ * вот тут методы из задания:
+ * Количество запросов в вашей системе фиксированное,
+ * и при правильной декомпозиции у вас должно получиться не больше трех методов репозитория и,
+ * соответственно, не больше трех кешей.
+ */
+
 }
