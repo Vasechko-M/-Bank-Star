@@ -18,7 +18,7 @@ public class RecommendationInvest implements RecommendationRuleSet {
     }
 
     /**
-     * При совпадении условий, компонент возвращает реккомендацию открытие инвестиционного кода.
+     * При совпадении условий, компонент возвращает рекомендацию открытие инвестиционного кода.
      */
     @Override
     public Optional<RecommendationDTO> check(UUID userId) {

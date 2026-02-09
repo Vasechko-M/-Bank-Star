@@ -1,10 +1,19 @@
 package pro.sky.manager.repository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import pro.sky.manager.cache.DepositWithdrawCache;
+import pro.sky.manager.cache.TransactionSumCache;
+import pro.sky.manager.cache.UserActivityCache;
+import pro.sky.manager.model.RecommendationDTO;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -14,11 +23,53 @@ public class RecommendationsRepository {
     private final JdbcTemplate jdbcTemplate;
     private final JdbcTemplate rulesJdbcTemplate;
 
+    private final DepositWithdrawCache depositCache;
+    private final TransactionSumCache spentCache;
+    private final UserActivityCache userActivityCache;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    /**
+     * Сохраняет рекомендацию в базу данных.
+     */
+    @Transactional
+    public void save(RecommendationDTO recommendation) {
+        if (recommendation == null || recommendation.getId() == null) {
+            throw new IllegalArgumentException("Recommendation or ID is null");
+        }
+        entityManager.persist(recommendation);
+    }
+
+    /**
+     * Удаляет рекомендацию по UUID из базы данных.
+     */
+    @Transactional
+    public void deleteById(UUID id) {
+        RecommendationDTO recommendation = entityManager.find(RecommendationDTO.class, id);
+        if (recommendation != null) {
+            entityManager.remove(recommendation);
+        }
+    }
+
+    /**
+     * Находит рекомендацию по UUID.
+     */
+    public RecommendationDTO findById(UUID id) {
+        return entityManager.find(RecommendationDTO.class, id);
+    }
+
     public RecommendationsRepository(
             @Qualifier("recommendationsJdbcTemplate") JdbcTemplate jdbcTemplate,
-            @Qualifier("rulesJdbcTemplate") JdbcTemplate rulesJdbcTemplate) {
+            @Qualifier("rulesJdbcTemplate") JdbcTemplate rulesJdbcTemplate,
+            DepositWithdrawCache depositCache,
+            TransactionSumCache spentCache,
+            UserActivityCache userActivityCache) {
         this.jdbcTemplate = jdbcTemplate;
         this.rulesJdbcTemplate = rulesJdbcTemplate;
+        this.depositCache = depositCache;
+        this.spentCache = spentCache;
+        this.userActivityCache = userActivityCache;
     }
 
     /**
@@ -64,10 +115,56 @@ public class RecommendationsRepository {
         return jdbcTemplate.queryForList(sql, String.class, userId);
     }
 /**
- * вот тут методы из задания:
+ * методы из задания:
  * Количество запросов в вашей системе фиксированное,
  * и при правильной декомпозиции у вас должно получиться не больше трех методов репозитория и,
  * соответственно, не больше трех кешей.
  */
+    /**
+     * Получает сумму депозитов с кешированием
+     */
+    public double getTotalDepositsCached(UUID userId, String productType) {
+        String key = depositCache.generateKey(userId.toString(), productType, "DEPOSIT", "sum");
+        Double cachedResult = depositCache.getResult(key);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+        double result = getTotalDeposits(userId, productType);
+        depositCache.putResult(key, result);
+        return result;
+    }
+
+    /**
+     * Получает сумму расходов с кешированием
+     */
+    public double getTotalSpentCached(UUID userId, String productType) {
+        String key = spentCache.generateKey(userId.toString(), productType, "WITHDRAWAL", "sum");
+        Double cachedResult = spentCache.getResult(key);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+        double result = getTotalSpent(userId, productType);
+        spentCache.putResult(key, result);
+        return result;
+    }
+
+
+    /**
+     * Получает список типов продуктов пользователя с кешем
+     */
+    public List<String> getProductTypesCached(UUID userId) {
+        String key = userActivityCache.generateKey("PRODUCT_TYPES", userId.toString(), "");
+
+        List<String> cachedResult = userActivityCache.getProductTypesFromCache(key);
+
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+
+        List<String> result = getProductTypes(userId);
+
+        userActivityCache.putProductTypesInCache(key, result);
+        return result;
+    }
 
 }
