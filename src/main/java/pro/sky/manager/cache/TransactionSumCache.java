@@ -2,28 +2,32 @@ package pro.sky.manager.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.stereotype.Component;
+import pro.sky.manager.cache.QueryKey;
 
 import java.util.concurrent.TimeUnit;
-
-
-@Component
+import java.util.function.Function;
 
 public class TransactionSumCache {
-    private final Cache<String, Double> cache = Caffeine.newBuilder()
+
+    private final Cache<QueryKey, Double> cache = Caffeine.newBuilder()
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .maximumSize(1000)
             .build();
 
-    public Double getResult(String key) {
+    public Double getResult(QueryKey key) {
         return cache.getIfPresent(key);
     }
 
-    public void putResult(String key, Double value) {
+    public void putResult(QueryKey key, Double value) {
         cache.put(key, value);
     }
 
-    public String generateKey(String userId, String productType, String operation, String value) {
-        return "TRANSACTION_SUM_COMPARE:" + userId + ":" + productType + ":" + operation + ":" + value;
+    public void invalidateAll() {
+        cache.invalidateAll();
+    }
+
+    // ✅ НОВЫЙ МЕТОД с паттерном get-if-absent-compute
+    public Double get(QueryKey key, Function<QueryKey, Double> mappingFunction) {
+        return cache.get(key, mappingFunction);
     }
 }

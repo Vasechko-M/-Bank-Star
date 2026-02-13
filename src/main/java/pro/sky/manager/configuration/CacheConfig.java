@@ -1,35 +1,49 @@
 package pro.sky.manager.configuration;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
+import pro.sky.manager.cache.CacheKey;
+import pro.sky.manager.cache.QueryKey;
+import pro.sky.manager.dto.DepositWithdrawSum;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
-@EnableCaching
 public class CacheConfig {
 
-    @Bean
-    public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-        cacheManager.setCaffeine(caffeineConfig());
-        cacheManager.setCacheNames(List.of(
-                "userRecommendations",
-                "ruleSetAnalysis",
-                "userFinancialSummary"
-        ));
-        return cacheManager;
+    @Bean("userProductTypesCache")
+    public Cache<UUID, List<String>> userProductTypesCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build();
     }
 
-    private Caffeine<Object, Object> caffeineConfig() {
+    @Bean("userProductCache")
+    public Cache<CacheKey, Boolean> userProductCache() {
         return Caffeine.newBuilder()
-                .expireAfterWrite(30, TimeUnit.MINUTES)
-                .maximumSize(1000);
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build();
+    }
+
+    @Bean("transactionSumCache")
+    public Cache<QueryKey, Double> transactionSumCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build();
+    }
+
+    @Bean("depositWithdrawCache")
+    public Cache<CacheKey, DepositWithdrawSum> depositWithdrawCache() {
+        return Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build();
     }
 }

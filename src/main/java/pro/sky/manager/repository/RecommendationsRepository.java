@@ -1,75 +1,38 @@
 package pro.sky.manager.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import pro.sky.manager.cache.CacheKey;
 import pro.sky.manager.cache.DepositWithdrawCache;
+import pro.sky.manager.cache.QueryKey;
 import pro.sky.manager.cache.TransactionSumCache;
 import pro.sky.manager.cache.UserActivityCache;
-import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.dto.DepositWithdrawSum;
+import pro.sky.manager.model.RecommendationDTO;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Repository
 public class RecommendationsRepository {
     private final JdbcTemplate jdbcTemplate;
-    private final JdbcTemplate rulesJdbcTemplate;
-
     private final DepositWithdrawCache depositCache;
-    private final TransactionSumCache spentCache;
+    private final TransactionSumCache transactionSumCache;
     private final UserActivityCache userActivityCache;
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    /**
-     * Сохраняет рекомендацию в базу данных.
-     */
-    @Transactional
-    public void save(RecommendationDTO recommendation) {
-        if (recommendation == null || recommendation.getId() == null) {
-            throw new IllegalArgumentException("Recommendation or ID is null");
-        }
-        entityManager.persist(recommendation);
-    }
-
-    /**
-     * Удаляет рекомендацию по UUID из базы данных.
-     */
-    @Transactional
-    public void deleteById(UUID id) {
-        RecommendationDTO recommendation = entityManager.find(RecommendationDTO.class, id);
-        if (recommendation != null) {
-            entityManager.remove(recommendation);
-        }
-    }
-
-    /**
-     * Находит рекомендацию по UUID.
-     */
-    public RecommendationDTO findById(UUID id) {
-        return entityManager.find(RecommendationDTO.class, id);
-    }
 
     public RecommendationsRepository(
             @Qualifier("recommendationsJdbcTemplate") JdbcTemplate jdbcTemplate,
-            @Qualifier("rulesJdbcTemplate") JdbcTemplate rulesJdbcTemplate,
             DepositWithdrawCache depositCache,
-            TransactionSumCache spentCache,
+            TransactionSumCache transactionSumCache,
             UserActivityCache userActivityCache) {
         this.jdbcTemplate = jdbcTemplate;
-        this.rulesJdbcTemplate = rulesJdbcTemplate;
         this.depositCache = depositCache;
-        this.spentCache = spentCache;
+        this.transactionSumCache = transactionSumCache;
         this.userActivityCache = userActivityCache;
     }
+
+    // ========== ОСНОВНЫЕ МЕТОДЫ БЕЗ КЭША ==========
 
     /**
      * Получает случайную сумму транзакции пользователя (один пример).
@@ -113,63 +76,9 @@ public class RecommendationsRepository {
                 + "WHERE t.user_id = ?";
         return jdbcTemplate.queryForList(sql, String.class, userId);
     }
-/**
- * методы из задания:
- * Количество запросов в вашей системе фиксированное,
- * и при правильной декомпозиции у вас должно получиться не больше трех методов репозитория и,
- * соответственно, не больше трех кешей.
- */
-    /**
-     * Получает сумму депозитов с кешированием
-     */
-    public double getTotalDepositsCached(UUID userId, String productType) {
-        String key = depositCache.generateKey(userId.toString(), productType, "DEPOSIT", "sum");
-        Double cachedResult = depositCache.getResult(key);
-        if (cachedResult != null) {
-            return cachedResult;
-        }
-        double result = getTotalDeposits(userId, productType);
-        depositCache.putResult(key, result);
-        return result;
-    }
-
-    /**
-     * Получает сумму расходов с кешированием
-     */
-    public double getTotalSpentCached(UUID userId, String productType) {
-        String key = spentCache.generateKey(userId.toString(), productType, "WITHDRAWAL", "sum");
-        Double cachedResult = spentCache.getResult(key);
-        if (cachedResult != null) {
-            return cachedResult;
-        }
-        double result = getTotalSpent(userId, productType);
-        spentCache.putResult(key, result);
-        return result;
-    }
-
-
-    /**
-     * Получает список типов продуктов пользователя с кешем
-     */
-    public List<String> getProductTypesCached(UUID userId) {
-        String key = userActivityCache.generateKey("PRODUCT_TYPES", userId.toString(), "");
-
-        List<String> cachedResult = userActivityCache.getProductTypesFromCache(key);
-
-        if (cachedResult != null) {
-            return cachedResult;
-        }
-
-        List<String> result = getProductTypes(userId);
-
-        userActivityCache.putProductTypesInCache(key, result);
-        return result;
-    }
-
 
     /**
      * Получает сумму транзакций по типу продукта и типу транзакции.
-     * Нужен для TRANSACTION_SUM_COMPARE запросов.
      */
     public double getTransactionSum(UUID userId, String productType, String transactionType) {
         String sql = "SELECT COALESCE(SUM(t.amount), 0) "
@@ -181,7 +90,6 @@ public class RecommendationsRepository {
 
     /**
      * Получает количество транзакций по типу продукта.
-     * Нужен для ACTIVE_USER_OF запросов.
      */
     public int getTransactionCount(UUID userId, String productType) {
         String sql = "SELECT COUNT(*) "
@@ -194,7 +102,6 @@ public class RecommendationsRepository {
 
     /**
      * Получает суммы депозитов и снятий для указанного типа продукта.
-     * Нужен для TRANSACTION_SUM_COMPARE_DEPOSIT_WITHDRAW запросов.
      */
     public DepositWithdrawSum getDepositWithdrawSums(UUID userId, String productType) {
         String depositSql = "SELECT COALESCE(SUM(t.amount), 0) "
@@ -214,5 +121,107 @@ public class RecommendationsRepository {
                 depositSum != null ? depositSum : 0.0,
                 withdrawSum != null ? withdrawSum : 0.0
         );
+    }
+
+    // ========== МЕТОДЫ С КЭШИРОВАНИЕМ (ПАТТЕРН GET-IF-ABSENT-COMPUTE) ==========
+
+    /**
+     * Получает сумму депозитов с кешированием
+     */
+    public double getTotalDepositsCached(UUID userId, String productType) {
+        CacheKey key = new CacheKey("DEPOSIT", userId, productType);
+        return depositCache.get(key, k -> getDepositWithdrawSums(userId, productType)).getDepositSum();
+    }
+
+    /**
+     * Получает сумму расходов с кешированием
+     */
+    public double getTotalSpentCached(UUID userId, String productType) {
+        CacheKey key = new CacheKey("WITHDRAWAL", userId, productType);
+        return depositCache.get(key, k -> getDepositWithdrawSums(userId, productType)).getWithdrawSum();
+    }
+
+    /**
+     * Получает список типов продуктов пользователя с кешем
+     */
+    public List<String> getProductTypesCached(UUID userId) {
+        CacheKey key = new CacheKey("PRODUCT_TYPES", userId, "");
+        return userActivityCache.getProductTypes(key, k -> getProductTypes(userId));
+    }
+
+    /**
+     * Получает количество транзакций с кешированием (>=5)
+     */
+    public boolean isActiveUserCached(UUID userId, String productType) {
+        CacheKey key = new CacheKey("ACTIVE_USER", userId, productType);
+        return userActivityCache.getBoolean(key, k -> getTransactionCount(userId, productType) >= 5);
+    }
+
+    /**
+     * Получает сумму транзакций с кешированием
+     */
+    public double getTransactionSumCached(UUID userId, String productType, String transactionType, String operator, int constant) {
+        QueryKey key = new QueryKey(userId, productType, transactionType, operator, constant);
+        return transactionSumCache.get(key, k -> getTransactionSum(userId, productType, transactionType));
+    }
+
+    /**
+     * Получает суммы депозитов и снятий с кешированием
+     */
+    public DepositWithdrawSum getDepositWithdrawSumsCached(UUID userId, String productType) {
+        CacheKey key = new CacheKey("DEPOSIT_WITHDRAW", userId, productType);
+        return depositCache.get(key, k -> getDepositWithdrawSums(userId, productType));
+    }
+
+    // ========== МЕТОДЫ ДЛЯ УПРАВЛЕНИЯ ПРАВИЛАМИ ==========
+
+    /**
+     * Сохраняет правило в базу данных dynamic_rules
+     */
+    public void save(RecommendationDTO rule) {
+        String sql = "INSERT INTO dynamic_rules (id, product_id, product_name, product_text) VALUES (?, ?, ?, ?)";
+        jdbcTemplate.update(sql,
+                rule.getId(),
+                rule.getProductId(),
+                rule.getProductName(),
+                rule.getProductText()
+        );
+    }
+
+    /**
+     * Удаляет правило по ID из базы dynamic_rules
+     */
+    public void deleteById(UUID ruleId) {
+        String sql = "DELETE FROM dynamic_rules WHERE id = ?";
+        jdbcTemplate.update(sql, ruleId);
+    }
+
+    /**
+     * Находит правило по ID
+     */
+    public RecommendationDTO findById(UUID id) {
+        String sql = "SELECT id, product_id, product_name, product_text FROM dynamic_rules WHERE id = ?";
+        return jdbcTemplate.queryForObject(sql,
+                (rs, rowNum) -> new RecommendationDTO(
+                        UUID.fromString(rs.getString("id")),
+                        UUID.fromString(rs.getString("product_id")),
+                        rs.getString("product_name"),
+                        rs.getString("product_text")
+                ),
+                id);
+    }
+
+    /**
+     * Получает все правила
+     */
+    public List<RecommendationDTO> findAll() {
+        String sql = "SELECT id, product_id, product_name, product_text FROM dynamic_rules";
+        return jdbcTemplate.query(sql,
+                (rs, rowNum) -> new RecommendationDTO(
+                        UUID.fromString(rs.getString("id")),
+                        UUID.fromString(rs.getString("product_id")),
+                        rs.getString("product_name"),
+                        rs.getString("product_text")
+                ));
     }
 }

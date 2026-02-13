@@ -1,9 +1,13 @@
 package pro.sky.manager.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import pro.sky.manager.cache.CacheKey;
+import pro.sky.manager.cache.QueryKey;
 import pro.sky.manager.dto.DepositWithdrawSum;
 import pro.sky.manager.dto.RuleListResponseDTO;
 import pro.sky.manager.dto.RuleRequestDTO;
@@ -18,12 +22,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-// ⚠️ ИМПОРТЫ ДЛЯ КЭШИРОВАНИЯ - РАСКОММЕНТИРОВАТЬ ПОСЛЕ PR И СОЗДАНИЯ КЭШЕЙ ⚠️
-// import com.github.benmanes.caffeine.cache.Cache;
-// import org.springframework.beans.factory.annotation.Qualifier;
-// import pro.sky.manager.cache.CacheKey;
-// import pro.sky.manager.cache.QueryKey;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,8 +32,6 @@ public class DynamicRuleCrudService {
     private final RuleMapper ruleMapper;
     private final DynamicRuleValidator ruleValidator;
 
-    // ⚠️ ПОЛЯ ДЛЯ КЭШИРОВАНИЯ - РАСКОММЕНТИРОВАТЬ ПОСЛЕ PR И СОЗДАНИЯ КЭШЕЙ ⚠️
-    /*
     @Qualifier("userProductTypesCache")
     private final Cache<UUID, List<String>> userProductTypesCache;
 
@@ -47,7 +43,6 @@ public class DynamicRuleCrudService {
 
     @Qualifier("depositWithdrawCache")
     private final Cache<CacheKey, DepositWithdrawSum> depositWithdrawCache;
-    */
 
     @Transactional
     public RuleResponseDTO createRule(RuleRequestDTO request) {
@@ -71,8 +66,7 @@ public class DynamicRuleCrudService {
         DynamicRule savedRule = ruleRepository.save(rule);
         log.info("Rule created with id: {}", savedRule.getId());
 
-        // ⚠️ РАСКОММЕНТИРОВАТЬ ПОСЛЕ PR И СОЗДАНИЯ КЭШЕЙ ⚠️
-        // invalidateAllCaches();
+        invalidateAllCaches();
 
         return ruleMapper.toResponseDTO(savedRule);
     }
@@ -101,8 +95,7 @@ public class DynamicRuleCrudService {
         ruleRepository.deleteByProductId(productId);
         log.info("Rule deleted for productId: {}", productId);
 
-        // ⚠️ РАСКОММЕНТИРОВАТЬ ПОСЛЕ PR И СОЗДАНИЯ КЭШЕЙ ⚠️
-        // invalidateAllCaches();
+        invalidateAllCaches();
     }
 
     public RuleResponseDTO getRuleByProductId(UUID productId) {
@@ -113,8 +106,6 @@ public class DynamicRuleCrudService {
         return ruleMapper.toResponseDTO(rule);
     }
 
-    // ⚠️ МЕТОД ДЛЯ ИНВАЛИДАЦИИ КЭШЕЙ - РАСКОММЕНТИРОВАТЬ ПОСЛЕ PR И СОЗДАНИЯ КЭШЕЙ ⚠️
-    /*
     private void invalidateAllCaches() {
         log.info("Invalidating all caches");
         userProductTypesCache.invalidateAll();
@@ -123,5 +114,4 @@ public class DynamicRuleCrudService {
         depositWithdrawCache.invalidateAll();
         log.info("All caches invalidated");
     }
-    */
 }
