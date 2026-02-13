@@ -10,4 +10,70 @@
 
         <createTable tableName="dynamic_rules">
             <column name="id" type="UUID">
-                <constraints primary
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="product_id" type="UUID">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="product_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_text" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createTable tableName="rule_conditions">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rule_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="negate" type="BOOLEAN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="condition_order" type="INTEGER"/>
+        </createTable>
+
+        <createTable tableName="rule_arguments">
+            <column name="condition_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+            <column name="argument" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="argument_order" type="INTEGER"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="rule_conditions"
+                baseColumnNames="rule_id"
+                referencedTableName="dynamic_rules"
+                referencedColumnNames="id"
+                constraintName="fk_rule_conditions_rules"/>
+
+        <addForeignKeyConstraint
+                baseTableName="rule_arguments"
+                baseColumnNames="condition_id"
+                referencedTableName="rule_conditions"
+                referencedColumnNames="id"
+                constraintName="fk_rule_arguments_conditions"/>
+
+        <createIndex indexName="idx_dynamic_rules_product_id"
+                     tableName="dynamic_rules">
+            <column name="product_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_rule_conditions_rule_id"
+                     tableName="rule_conditions">
+            <column name="rule_id"/>
+        </createIndex>
+
+    </changeSet>
+</databaseChangeLog>
