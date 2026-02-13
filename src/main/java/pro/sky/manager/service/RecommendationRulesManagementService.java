@@ -1,5 +1,7 @@
 package pro.sky.manager.service;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationsRepository;
@@ -7,16 +9,12 @@ import pro.sky.manager.repository.RecommendationsRepository;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class RecommendationRulesManagementService {
 
     private final RecommendationsRepository ruleRepository;
     private final RecommendationService recommendationService;
-
-    public RecommendationRulesManagementService(RecommendationsRepository ruleRepository,
-                                                RecommendationService recommendationService) {
-        this.ruleRepository = ruleRepository;
-        this.recommendationService = recommendationService;
-    }
 
     public void addRule(RecommendationDTO rule) {
         ruleRepository.save(rule);
@@ -25,11 +23,6 @@ public class RecommendationRulesManagementService {
 
     public void removeRule(UUID ruleId) {
         ruleRepository.deleteById(ruleId);
-        recommendationService.clearUserRecommendationsCache();
-    }
-
-    public void updateRule(RecommendationDTO rule) {
-        ruleRepository.save(rule);
         recommendationService.clearUserRecommendationsCache();
     }
 }

@@ -2,28 +2,32 @@ package pro.sky.manager.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.stereotype.Component;
+import pro.sky.manager.dto.DepositWithdrawSum;
 
 import java.util.concurrent.TimeUnit;
-
-
-@Component
+import java.util.function.Function;
 
 public class DepositWithdrawCache {
-    private final Cache<String, Double> cache = Caffeine.newBuilder()
+
+    private final Cache<CacheKey, DepositWithdrawSum> cache = Caffeine.newBuilder()
             .expireAfterWrite(10, TimeUnit.MINUTES)
             .maximumSize(1000)
             .build();
 
-    public Double getResult(String key) {
+    public DepositWithdrawSum getResult(CacheKey key) {
         return cache.getIfPresent(key);
     }
 
-    public void putResult(String key, Double value) {
+    public void putResult(CacheKey key, DepositWithdrawSum value) {
         cache.put(key, value);
     }
 
-    public String generateKey(String userId, String productType, String transactionType, String detail) {
-        return "DEPOSIT_WITHDRAW:" + userId + ":" + productType + ":" + transactionType+ ":" + detail;
+    public void invalidateAll() {
+        cache.invalidateAll();
+    }
+
+
+    public DepositWithdrawSum get(CacheKey key, Function<CacheKey, DepositWithdrawSum> mappingFunction) {
+        return cache.get(key, mappingFunction);
     }
 }

@@ -8,28 +8,45 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Entity
-@Table(name = "rules")
+@Table(name = "dynamic_rules")
+@Schema(description = "Рекомендация для пользователя")
 public class RecommendationDTO {
-    @Schema(description = "ID рекомендации")
+
     @Id
     @GeneratedValue(generator = "UUID")
     @GenericGenerator(
             name = "UUID",
             strategy = "org.hibernate.id.UUIDGenerator"
     )
+    @Schema(description = "ID рекомендации")
     private UUID id;
-    @Schema(description = "Заголовок рекомендации")
-    private String name;
-    @Schema(description = "Описание рекомендации")
-    private String text;
+
+    @Column(name = "product_id", nullable = false)
+    @Schema(description = "ID продукта", example = "ab138afb-f3ba-4a93-b74f-0fcee86d447f")
+    private UUID productId;
+
+    @Column(name = "product_name", nullable = false)
+    @Schema(description = "Название продукта", example = "Простой кредит")
+    private String productName;
+
+    @Column(name = "product_text", nullable = false, length = 2000)
+    @Schema(description = "Текст рекомендации", example = "Откройте мир выгодных кредитов...")
+    private String productText;
 
     public RecommendationDTO() {
     }
 
-    public RecommendationDTO(UUID id, String name, String text) {
+    public RecommendationDTO(UUID id, UUID productId, String productName, String productText) {
         this.id = id;
-        this.name = name;
-        this.text = text;
+        this.productId = productId;
+        this.productName = productName;
+        this.productText = productText;
+    }
+
+    public RecommendationDTO(UUID productId, String productName, String productText) {
+        this.productId = productId;
+        this.productName = productName;
+        this.productText = productText;
     }
 
     public UUID getId() {
@@ -40,42 +57,53 @@ public class RecommendationDTO {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public UUID getProductId() {
+        return productId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setProductId(UUID productId) {
+        this.productId = productId;
     }
 
-    public String getText() {
-        return text;
+    public String getProductName() {
+        return productName;
     }
 
-    public void setText(String text) {
-        this.text = text;
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public String getProductText() {
+        return productText;
+    }
+
+    public void setProductText(String productText) {
+        this.productText = productText;
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof RecommendationDTO that)) return false;
+        if (o == null || getClass() != o.getClass()) return false;
+        RecommendationDTO that = (RecommendationDTO) o;
         return Objects.equals(id, that.id) &&
-                Objects.equals(name, that.name) &&
-                Objects.equals(text, that.text);
+                Objects.equals(productId, that.productId) &&
+                Objects.equals(productName, that.productName) &&
+                Objects.equals(productText, that.productText);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, text);
+        return Objects.hash(id, productId, productName, productText);
     }
 
     @Override
     public String toString() {
-        return "RecommendationDto{" +
+        return "RecommendationDTO{" +
                 "id=" + id +
-                ", name='" + name + '\'' +
-                ", text='" + text + '\'' +
+                ", productId=" + productId +
+                ", productName='" + productName + '\'' +
+                ", productText='" + productText + '\'' +
                 '}';
     }
 }
