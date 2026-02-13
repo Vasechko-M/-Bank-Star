@@ -18,7 +18,7 @@ public class RecommendationSaving implements RecommendationRuleSet {
     }
 
     /**
-     * При совпадении условий, компонент возвращает реккомендацию на открытие накопительного счета.
+     * При совпадении условий, компонент возвращает рекомендацию на открытие накопительного счета.
      */
     @Override
     public Optional<RecommendationDTO> check(UUID userId) {

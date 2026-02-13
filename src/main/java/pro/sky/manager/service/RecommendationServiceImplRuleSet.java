@@ -5,26 +5,52 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.sql.DataSource;
 
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationRuleSet;
 
+/**
+ * Реализация с кешированием результатов проверки рекомендаций.
+ */
 @Service
 public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
 
     private final NamedParameterJdbcTemplate namedJdbcTemplate;
+    private final RecommendationService recommendationService;
+    private final Cache cache;
 
-    public RecommendationServiceImplRuleSet(DataSource dataSource) {
+    public RecommendationServiceImplRuleSet(DataSource dataSource
+            , RecommendationService recommendationService
+            , CacheManager cacheManager) {
         this.namedJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
+        this.recommendationService = recommendationService;
+        this.cache = cacheManager.getCache("recommendationCache");
     }
 
-@Override
-public Optional<RecommendationDTO> check(UUID userId) {
-    return checkRecommendations(userId);
+    @Override
+    public Optional<RecommendationDTO> check(UUID userId) {
+        String cacheKey = "recommendation_" + userId.toString();
+
+    @SuppressWarnings("unchecked")
+    Optional<RecommendationDTO> cachedResult = (Optional<RecommendationDTO>) cache.get(cacheKey, Optional.class);
+    if (cachedResult != null) {
+        return cachedResult;
+    }
+
+    Optional<RecommendationDTO> result = checkRecommendations(userId);
+
+    cache.put(cacheKey, result);
+
+    return result;
 }
 
+    /**
+     * Основной метод проверки рекомендаций, работающий без кеша.
+     */
     public Optional<RecommendationDTO> checkRecommendations(UUID userId) {
         String[] productTypes = {"DEBIT", "CREDIT", "SAVING", "INVEST"};
         String transactionType = "DEPOSIT"; //под вопросом
@@ -129,6 +155,13 @@ public Optional<RecommendationDTO> check(UUID userId) {
             ));
         }
         return Optional.empty();
+    }
+
+    /**
+     * Метод полностью чистки кеша
+     */
+    public void clearRecommendationsCache() {
+        recommendationService.clearUserRecommendationsCache();
     }
 
     // Вспомогательная сущность для промежуточных вычислений
