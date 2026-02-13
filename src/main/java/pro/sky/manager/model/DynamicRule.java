@@ -18,21 +18,20 @@ import java.util.UUID;
 public class DynamicRule {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "product_name", nullable = false)
     private String productName;
 
-    @Column(name = "product_id", nullable = false)
+    @Column(name = "product_id", nullable = false, unique = true)
     private UUID productId;
 
     @Column(name = "product_text", columnDefinition = "TEXT", nullable = false)
     private String productText;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "rule_conditions",
-            joinColumns = @JoinColumn(name = "rule_id"))
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "rule_id")
     @OrderColumn(name = "condition_order")
     private List<QueryCondition> rule = new ArrayList<>();
 

@@ -1,80 +1,61 @@
 package pro.sky.manager.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.service.RecommendationService;
+import pro.sky.manager.service.DynamicRuleService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @RestController
+@RequiredArgsConstructor
 public class RecommendationsController {
 
     private final RecommendationService recommendationService;
+    private final DynamicRuleService dynamicRuleService;
 
-    public RecommendationsController(RecommendationService recommendationService) {
-        this.recommendationService = recommendationService;
-    }
-
-    /**
-     * Возвращает список рекомендаций для указанного пользователя, если данный пользователь существует
-     */
     @GetMapping("/recommendation/{user_id}")
     public ResponseEntity<Map<String, Object>> getRecommendations(@PathVariable("user_id") String userIdStr) {
-        UUID userId;
-        try {
-            String cleanedUserId = userIdStr.trim().replaceAll("\\s", "");
-            if (cleanedUserId.isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("error", "User ID cannot be empty"));
-            }
-            userId = UUID.fromString(cleanedUserId);
-        } catch (IllegalArgumentException e) {
+        UUID userId = parseUserId(userIdStr);
+        if (userId == null) {
             return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "error", "Invalid UUID format",
-                            "received", userIdStr.trim(),
-                            "expected", "Valid UUID (e.g., 123e4567-e89b-12d3-a456-426614174000)"
-                    ));
+                    .body(Map.of("error", "Invalid UUID format"));
         }
 
-        boolean rulesApplicable;
         try {
-            rulesApplicable = recommendationService.checkConditionsForSetRules(userId);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(Map.of(
-                    "error", "Error checking conditions",
-                    "details", e.getMessage()
-            ));
-        }
+            List<RecommendationDTO> recommendations = new ArrayList<>();
 
-        if (!rulesApplicable) {
+            // Статические правила
+            recommendations.addAll(recommendationService.getRecommendationsByUserId(userId));
+
+            // Динамические правила
+            recommendations.addAll(dynamicRuleService.getRecommendationsFromDynamicRules(userId));
+
             return ResponseEntity.ok(Map.of(
                     "user_id", userId.toString(),
-                    "recommendations", "No",
-                    "message", "Условия не выполнены"
+                    "recommendations", recommendations,
+                    "count", recommendations.size()
             ));
-        }
 
-        List<RecommendationDTO> recommendations;
-        try {
-            recommendations = recommendationService.getRecommendationsByUserId(userId);
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of(
                     "error", "Error retrieving recommendations",
                     "details", e.getMessage()
             ));
         }
+    }
 
-        return ResponseEntity.ok(Map.of(
-                "user_id", userId.toString(),
-                "recommendations", recommendations,
-                "count", recommendations.size()
-        ));
+    private UUID parseUserId(String userIdStr) {
+        try {
+            String cleanedUserId = userIdStr.trim().replaceAll("\\s", "");
+            return cleanedUserId.isEmpty() ? null : UUID.fromString(cleanedUserId);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }

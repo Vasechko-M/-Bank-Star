@@ -22,7 +22,7 @@ public class QueryConditionDTO {
     @Schema(description = "Аргументы запроса", example = "[\"CREDIT\"]", required = true)
     private List<String> arguments;
 
-    @Schema(description = "Отрицание условия", example = "true")
+    @Schema(description = "Отрицание условия", example = "true", defaultValue = "false")
     private boolean negate;
 
     @JsonCreator

@@ -4,11 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RuleListResponseDTO {
-    private List<RuleResponseDTO> data;
+public class DepositWithdrawSum {
+    private double depositSum;
+    private double withdrawSum;
 }

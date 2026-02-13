@@ -3,6 +3,7 @@ package pro.sky.manager.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import pro.sky.manager.model.QueryType;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,8 +14,8 @@ import java.util.UUID;
 @Schema(description = "Ответ с информацией о правиле")
 public class RuleResponseDTO {
 
-    @Schema(description = "ID правила", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
-    private Long id;
+    @Schema(description = "ID правила", example = "123e4567-e89b-12d3-a456-426614174000")
+    private UUID id;
 
     @Schema(description = "Название продукта", example = "Простой кредит")
     private String productName;
