@@ -10,13 +10,12 @@ import pro.sky.manager.cache.DepositWithdrawCache;
 import pro.sky.manager.cache.TransactionSumCache;
 import pro.sky.manager.cache.UserActivityCache;
 import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.dto.DepositWithdrawSum;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-
 
 @Repository
 public class RecommendationsRepository {
@@ -167,4 +166,53 @@ public class RecommendationsRepository {
         return result;
     }
 
+
+    /**
+     * Получает сумму транзакций по типу продукта и типу транзакции.
+     * Нужен для TRANSACTION_SUM_COMPARE запросов.
+     */
+    public double getTransactionSum(UUID userId, String productType, String transactionType) {
+        String sql = "SELECT COALESCE(SUM(t.amount), 0) "
+                + "FROM transactions t "
+                + "JOIN products p ON t.product_id = p.id "
+                + "WHERE t.user_id = ? AND p.type = ? AND t.type = ?";
+        return jdbcTemplate.queryForObject(sql, Double.class, userId, productType, transactionType);
+    }
+
+    /**
+     * Получает количество транзакций по типу продукта.
+     * Нужен для ACTIVE_USER_OF запросов.
+     */
+    public int getTransactionCount(UUID userId, String productType) {
+        String sql = "SELECT COUNT(*) "
+                + "FROM transactions t "
+                + "JOIN products p ON t.product_id = p.id "
+                + "WHERE t.user_id = ? AND p.type = ?";
+        Integer result = jdbcTemplate.queryForObject(sql, Integer.class, userId, productType);
+        return result != null ? result : 0;
+    }
+
+    /**
+     * Получает суммы депозитов и снятий для указанного типа продукта.
+     * Нужен для TRANSACTION_SUM_COMPARE_DEPOSIT_WITHDRAW запросов.
+     */
+    public DepositWithdrawSum getDepositWithdrawSums(UUID userId, String productType) {
+        String depositSql = "SELECT COALESCE(SUM(t.amount), 0) "
+                + "FROM transactions t "
+                + "JOIN products p ON t.product_id = p.id "
+                + "WHERE t.user_id = ? AND p.type = ? AND t.type = 'DEPOSIT'";
+
+        String withdrawSql = "SELECT COALESCE(SUM(t.amount), 0) "
+                + "FROM transactions t "
+                + "JOIN products p ON t.product_id = p.id "
+                + "WHERE t.user_id = ? AND p.type = ? AND t.type = 'WITHDRAWAL'";
+
+        Double depositSum = jdbcTemplate.queryForObject(depositSql, Double.class, userId, productType);
+        Double withdrawSum = jdbcTemplate.queryForObject(withdrawSql, Double.class, userId, productType);
+
+        return new DepositWithdrawSum(
+                depositSum != null ? depositSum : 0.0,
+                withdrawSum != null ? withdrawSum : 0.0
+        );
+    }
 }
