@@ -2,11 +2,13 @@ package pro.sky.manager.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.stereotype.Component;
 import pro.sky.manager.cache.QueryKey;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+@Component
 public class TransactionSumCache {
 
     private final Cache<QueryKey, Double> cache = Caffeine.newBuilder()

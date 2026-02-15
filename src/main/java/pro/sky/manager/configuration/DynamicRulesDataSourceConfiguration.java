@@ -24,14 +24,12 @@ import java.util.HashMap;
 )
 public class DynamicRulesDataSourceConfiguration {
 
-    @Primary
     @Bean(name = "defaultDataSource")
     @ConfigurationProperties("spring.datasource")
     public DataSource defaultDataSource(DataSourceProperties properties) {
         return properties.initializeDataSourceBuilder().build();
     }
 
-    @Primary
     @Bean(name = "defaultEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean defaultEntityManagerFactory(
             @Qualifier("defaultDataSource") DataSource dataSource) {
@@ -51,7 +49,6 @@ public class DynamicRulesDataSourceConfiguration {
         return em;
     }
 
-    @Primary
     @Bean(name = "defaultTransactionManager")
     public PlatformTransactionManager defaultTransactionManager(
             @Qualifier("defaultEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {

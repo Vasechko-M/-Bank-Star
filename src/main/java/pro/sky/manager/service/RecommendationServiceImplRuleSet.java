@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,14 +21,13 @@ import pro.sky.manager.repository.RecommendationRuleSet;
 public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
 
     private final NamedParameterJdbcTemplate namedJdbcTemplate;
-    private final RecommendationService recommendationService;
     private final Cache cache;
 
-    public RecommendationServiceImplRuleSet(DataSource dataSource
-            , RecommendationService recommendationService
-            , CacheManager cacheManager) {
+    public RecommendationServiceImplRuleSet(
+            @Qualifier("recommendationsDataSource") DataSource dataSource,
+            CacheManager cacheManager
+    ) {
         this.namedJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
-        this.recommendationService = recommendationService;
         this.cache = cacheManager.getCache("recommendationCache");
     }
 
@@ -35,18 +35,18 @@ public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
     public Optional<RecommendationDTO> check(UUID userId) {
         String cacheKey = "recommendation_" + userId.toString();
 
-    @SuppressWarnings("unchecked")
-    Optional<RecommendationDTO> cachedResult = (Optional<RecommendationDTO>) cache.get(cacheKey, Optional.class);
-    if (cachedResult != null) {
-        return cachedResult;
+        @SuppressWarnings("unchecked")
+        Optional<RecommendationDTO> cachedResult = (Optional<RecommendationDTO>) cache.get(cacheKey, Optional.class);
+        if (cachedResult != null) {
+            return cachedResult;
+        }
+
+        Optional<RecommendationDTO> result = checkRecommendations(userId);
+
+        cache.put(cacheKey, result);
+
+        return result;
     }
-
-    Optional<RecommendationDTO> result = checkRecommendations(userId);
-
-    cache.put(cacheKey, result);
-
-    return result;
-}
 
     /**
      * Основной метод проверки рекомендаций, работающий без кеша.
@@ -57,12 +57,12 @@ public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
 
         for (String productType : productTypes) {
             String sqlQuery = """
-                SELECT t.USER_ID, p.TYPE AS product_type, t.TYPE AS transaction_type, SUM(t.AMOUNT) AS total_sum
-                FROM TRANSACTIONS t
-                INNER JOIN PRODUCTS p ON t.PRODUCT_ID = p.ID
-                WHERE t.USER_ID = :userId AND p.TYPE = :productType AND t.TYPE = :transactionType
-                GROUP BY t.USER_ID, p.TYPE, t.TYPE;
-                """;
+                    SELECT t.USER_ID, p.TYPE AS product_type, t.TYPE AS transaction_type, SUM(t.AMOUNT) AS total_sum
+                    FROM TRANSACTIONS t
+                    INNER JOIN PRODUCTS p ON t.PRODUCT_ID = p.ID
+                    WHERE t.USER_ID = :userId AND p.TYPE = :productType AND t.TYPE = :transactionType
+                    GROUP BY t.USER_ID, p.TYPE, t.TYPE;
+                    """;
 
             RowMapper<UserTransactionSummary> rowMapper = (rs, rowNum) ->
                     new UserTransactionSummary(
@@ -157,13 +157,7 @@ public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
         return Optional.empty();
     }
 
-    /**
-     * Метод полностью чистки кеша
-     */
-    public void clearRecommendationsCache() {
-        recommendationService.clearUserRecommendationsCache();
-    }
-
     // Вспомогательная сущность для промежуточных вычислений
-    record UserTransactionSummary(String userId, String productType, String transactionType, long totalSum) {}
+    record UserTransactionSummary(String userId, String productType, String transactionType, long totalSum) {
+    }
 }

@@ -32,16 +32,16 @@ public class DynamicRuleCrudService {
     private final RuleMapper ruleMapper;
     private final DynamicRuleValidator ruleValidator;
 
-    @Qualifier("userProductTypesCache")
+    @Qualifier("userProductTypesCacheBean")
     private final Cache<UUID, List<String>> userProductTypesCache;
 
-    @Qualifier("userProductCache")
+    @Qualifier("userProductCacheBean")
     private final Cache<CacheKey, Boolean> userProductCache;
 
-    @Qualifier("transactionSumCache")
+    @Qualifier("transactionSumCacheBean")
     private final Cache<QueryKey, Double> transactionSumCache;
 
-    @Qualifier("depositWithdrawCache")
+    @Qualifier("depositWithdrawCacheBean")
     private final Cache<CacheKey, DepositWithdrawSum> depositWithdrawCache;
 
     @Transactional
