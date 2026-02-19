@@ -30,8 +30,7 @@ public class DynamicRule {
     @Column(name = "product_text", columnDefinition = "TEXT", nullable = false)
     private String productText;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "rule_id")
+    @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderColumn(name = "condition_order")
     private List<QueryCondition> rule = new ArrayList<>();
 

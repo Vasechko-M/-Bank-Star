@@ -38,11 +38,11 @@ public class RuleController {
 
     @DeleteMapping("/{productId}")
     @Operation(summary = "Удалить правило по ID продукта")
-    public ResponseEntity<Void> deleteRule(
+    public ResponseEntity<String> deleteRule(
             @Parameter(description = "ID продукта", required = true)
             @PathVariable UUID productId) {
         ruleService.deleteRule(productId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Правило с продуктом " + productId + " успешно удалено");
     }
 
     @GetMapping("/{productId}")

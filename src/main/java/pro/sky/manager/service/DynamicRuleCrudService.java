@@ -16,6 +16,7 @@ import pro.sky.manager.dto.RuleMapper;
 import pro.sky.manager.exception.RuleAlreadyExistsException;
 import pro.sky.manager.exception.RuleNotFoundException;
 import pro.sky.manager.model.DynamicRule;
+import pro.sky.manager.model.QueryCondition;
 import pro.sky.manager.repository.DynamicRuleRepository;
 
 import java.util.List;
@@ -46,6 +47,7 @@ public class DynamicRuleCrudService {
 
     @Transactional
     public RuleResponseDTO createRule(RuleRequestDTO request) {
+        try {
         log.info("Creating new rule for product: {}", request.getProductName());
 
         if (ruleRepository.existsByProductId(request.getProductId())) {
@@ -58,7 +60,9 @@ public class DynamicRuleCrudService {
 
         if (rule.getRule() != null) {
             for (int i = 0; i < rule.getRule().size(); i++) {
-                rule.getRule().get(i).setOrder(i);
+                QueryCondition condition = rule.getRule().get(i);
+                condition.setOrder(i);
+                condition.setRule(rule);
             }
             ruleValidator.validateRuleConditions(rule.getRule());
         }
@@ -69,6 +73,11 @@ public class DynamicRuleCrudService {
         invalidateAllCaches();
 
         return ruleMapper.toResponseDTO(savedRule);
+        } catch (Exception e) {
+            log.error("Error while creating rule", e);
+            throw e;
+
+        }
     }
 
     public RuleListResponseDTO getAllRules() {
