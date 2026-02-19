@@ -35,4 +35,8 @@ public class QueryCondition {
 
     @Column(name = "condition_order")
     private Integer order;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "rule_id", nullable = false)
+    private DynamicRule rule;
 }

@@ -52,7 +52,7 @@ public class CacheConfig {
     }
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager("recommendationCache");
+        CaffeineCacheManager cacheManager = new CaffeineCacheManager("recommendationCache", "userRecommendations");
         cacheManager.setCaffeine(caffeineConfig());
         return cacheManager;
     }
