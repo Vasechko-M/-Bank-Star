@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface RecommendationRuleStatsRepository extends JpaRepository<RecommendationRuleStat, Long> {
-    RecommendationRuleStat findByRule(UUID ruleId);
+    RecommendationRuleStat findByRuleId(UUID ruleId);
 }

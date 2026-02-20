@@ -61,7 +61,7 @@ public class DynamicRuleCrudService {
             DynamicRule rule = ruleOptional.get();
             log.info("Deleting rule stat for ruleId: {}", ruleId);
 
-            RecommendationRuleStat stats = statsRepo.findByRule(rule.getId());
+            RecommendationRuleStat stats = statsRepo.findByRuleId(rule.getId());
             if(stats != null) {
                 statsRepo.delete(stats);
             }
@@ -129,7 +129,7 @@ public class DynamicRuleCrudService {
         Optional<DynamicRule> ruleOptional = ruleRepository.findById(productId);
         if(ruleOptional.isPresent()) {
             DynamicRule rule = ruleOptional.get();
-            RecommendationRuleStat stats = statsRepo.findByRule(rule.getId());
+            RecommendationRuleStat stats = statsRepo.findByRuleId(rule.getId());
             if (stats != null) {
                 statsRepo.delete(stats);
             }

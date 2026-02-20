@@ -37,7 +37,7 @@ public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
      */
     @Override
     public void onRuleFired(DynamicRule rule) {
-        RecommendationRuleStat stats = statsRepo.findByRule(rule.getId());
+        RecommendationRuleStat stats = statsRepo.findByRuleId(rule.getId());
 
         if(stats != null){
             stats.setCount(stats.getCount() + 1); // Увеличили счётчик срабатываний

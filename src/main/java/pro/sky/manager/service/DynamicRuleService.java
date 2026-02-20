@@ -31,7 +31,7 @@ public class DynamicRuleService {
      * Увеличение счётчика срабатываний правила
      */
     public void incrementCountForRule(UUID ruleId) {
-        RecommendationRuleStat stat = statsRepo.findByRule(ruleId);
+        RecommendationRuleStat stat = statsRepo.findByRuleId(ruleId);
 
         if (stat != null) {
             int newCount = stat.getCount() + 1;
