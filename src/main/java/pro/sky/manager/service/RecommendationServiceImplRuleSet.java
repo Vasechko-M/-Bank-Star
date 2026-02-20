@@ -5,14 +5,18 @@ import java.util.Optional;
 import java.util.UUID;
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
+import pro.sky.manager.model.DynamicRule;
 import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.RecommendationRuleStat;
 import pro.sky.manager.repository.RecommendationRuleSet;
+import pro.sky.manager.repository.RecommendationRuleStatsRepository;
 
 /**
  * Реализация с кешированием результатов проверки рекомендаций.
@@ -22,6 +26,27 @@ public class RecommendationServiceImplRuleSet implements RecommendationRuleSet {
 
     private final NamedParameterJdbcTemplate namedJdbcTemplate;
     private final Cache cache;
+
+    @Autowired
+    private RecommendationRuleStatsRepository statsRepo;
+
+    /**
+     * Этот метод вызван, когда правило выполнилось успешно и рекомендовано пользователю.
+     *
+     * @param rule правило, которое сработало
+     */
+    @Override
+    public void onRuleFired(DynamicRule rule) {
+        RecommendationRuleStat stats = statsRepo.findByRuleId(rule.getId());
+
+        if(stats != null){
+            stats.setCount(stats.getCount() + 1); // Увеличили счётчик срабатываний
+            statsRepo.save(stats);
+        } else { // Если статистика ещё не создана
+            stats = new RecommendationRuleStat(rule.getId());
+            statsRepo.save(stats);
+        }
+    }
 
     public RecommendationServiceImplRuleSet(
             @Qualifier("recommendationsDataSource") DataSource dataSource,

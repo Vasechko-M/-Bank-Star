@@ -1,6 +1,7 @@
 package pro.sky.manager.component;
 
 import org.springframework.stereotype.Component;
+import pro.sky.manager.model.DynamicRule;
 import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationRuleSet;
 import pro.sky.manager.repository.RecommendationsRepository;
@@ -40,5 +41,10 @@ public class RecommendationInvest implements RecommendationRuleSet {
             ));
         }
         return Optional.empty();
+    }
+
+    @Override
+    public void onRuleFired(DynamicRule rule) {
+
     }
 }
