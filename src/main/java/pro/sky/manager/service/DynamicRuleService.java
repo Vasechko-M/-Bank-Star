@@ -2,12 +2,14 @@ package pro.sky.manager.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.model.DynamicRule;
 import pro.sky.manager.model.QueryCondition;
-import pro.sky.manager.model.QueryType;
+import pro.sky.manager.model.RecommendationRuleStat;
 import pro.sky.manager.repository.DynamicRuleRepository;
+import pro.sky.manager.repository.RecommendationRuleStatsRepository;
 import pro.sky.manager.repository.RecommendationsRepository;
 
 import java.util.ArrayList;
@@ -21,6 +23,27 @@ public class DynamicRuleService {
 
     private final DynamicRuleRepository dynamicRuleRepository;
     private final RecommendationsRepository recommendationsRepository;
+
+    @Autowired
+    private RecommendationRuleStatsRepository statsRepo;
+
+    /**
+     * Увеличение счётчика срабатываний правила
+     */
+    public void incrementCountForRule(UUID ruleId) {
+        RecommendationRuleStat stat = statsRepo.findByRule(ruleId);
+
+        if (stat != null) {
+            int newCount = stat.getCount() + 1;
+            stat.setCount(newCount);
+            statsRepo.save(stat);
+        } else {
+            // Если статистика ещё не создана, создаём её с начальным счётом 1
+            RecommendationRuleStat newStat = new RecommendationRuleStat(ruleId);
+            newStat.setCount(1);
+            statsRepo.save(newStat);
+        }
+    }
 
     public List<RecommendationDTO> getRecommendationsFromDynamicRules(UUID userId) {
         List<RecommendationDTO> recommendations = new ArrayList<>();

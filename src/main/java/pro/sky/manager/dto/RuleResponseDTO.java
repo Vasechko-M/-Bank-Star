@@ -3,7 +3,6 @@ package pro.sky.manager.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import pro.sky.manager.model.QueryType;
 
 import java.time.LocalDateTime;
 import java.util.List;

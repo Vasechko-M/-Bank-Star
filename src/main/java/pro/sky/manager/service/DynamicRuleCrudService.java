@@ -3,6 +3,7 @@ package pro.sky.manager.service;
 import com.github.benmanes.caffeine.cache.Cache;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +18,12 @@ import pro.sky.manager.exception.RuleAlreadyExistsException;
 import pro.sky.manager.exception.RuleNotFoundException;
 import pro.sky.manager.model.DynamicRule;
 import pro.sky.manager.model.QueryCondition;
+import pro.sky.manager.model.RecommendationRuleStat;
 import pro.sky.manager.repository.DynamicRuleRepository;
+import pro.sky.manager.repository.RecommendationRuleStatsRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -33,6 +37,9 @@ public class DynamicRuleCrudService {
     private final RuleMapper ruleMapper;
     private final DynamicRuleValidator ruleValidator;
 
+    @Autowired
+    private RecommendationRuleStatsRepository statsRepo;
+
     @Qualifier("userProductTypesCacheBean")
     private final Cache<UUID, List<String>> userProductTypesCache;
 
@@ -44,6 +51,23 @@ public class DynamicRuleCrudService {
 
     @Qualifier("depositWithdrawCacheBean")
     private final Cache<CacheKey, DepositWithdrawSum> depositWithdrawCache;
+
+    /**
+     * Удаляет правило вместе с соответствующей статистикой.
+     */
+    public void deleteRuleStat(UUID ruleId) {
+        Optional<DynamicRule> ruleOptional = ruleRepository.findById(ruleId);
+        if(ruleOptional.isPresent()) {
+            DynamicRule rule = ruleOptional.get();
+            log.info("Deleting rule stat for ruleId: {}", ruleId);
+
+            RecommendationRuleStat stats = statsRepo.findByRule(rule.getId());
+            if(stats != null) {
+                statsRepo.delete(stats);
+            }
+            log.info("Rule stat deleted for ruleId: {}", ruleId);
+        }
+    }
 
     @Transactional
     public RuleResponseDTO createRule(RuleRequestDTO request) {
@@ -93,7 +117,7 @@ public class DynamicRuleCrudService {
 
     @Transactional
     public void deleteRule(UUID productId) {
-        log.info("Deleting rule for productId: {}", productId);
+        log.info("Deleting rule and stat for productId: {}", productId);
 
         if (!ruleRepository.existsByProductId(productId)) {
             throw new RuleNotFoundException(
@@ -102,7 +126,15 @@ public class DynamicRuleCrudService {
         }
 
         ruleRepository.deleteByProductId(productId);
-        log.info("Rule deleted for productId: {}", productId);
+        Optional<DynamicRule> ruleOptional = ruleRepository.findById(productId);
+        if(ruleOptional.isPresent()) {
+            DynamicRule rule = ruleOptional.get();
+            RecommendationRuleStat stats = statsRepo.findByRule(rule.getId());
+            if (stats != null) {
+                statsRepo.delete(stats);
+            }
+        }
+        log.info("Rule and stat deleted for productId: {}", productId);
 
         invalidateAllCaches();
     }
