@@ -15,8 +15,8 @@ import pro.sky.manager.dto.RuleResponseDTO;
 import pro.sky.manager.dto.RuleMapper;
 import pro.sky.manager.exception.RuleAlreadyExistsException;
 import pro.sky.manager.exception.RuleNotFoundException;
-import pro.sky.manager.model.DynamicRule;
-import pro.sky.manager.model.QueryCondition;
+import pro.sky.manager.model.rules.DynamicRule;
+import pro.sky.manager.model.rules.QueryCondition;
 import pro.sky.manager.repository.DynamicRuleRepository;
 
 import java.util.List;

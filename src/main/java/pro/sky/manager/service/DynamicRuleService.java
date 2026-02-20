@@ -3,10 +3,9 @@ package pro.sky.manager.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pro.sky.manager.model.RecommendationDTO;
-import pro.sky.manager.model.DynamicRule;
-import pro.sky.manager.model.QueryCondition;
-import pro.sky.manager.model.QueryType;
+import pro.sky.manager.model.rules.RecommendationDTO;
+import pro.sky.manager.model.rules.DynamicRule;
+import pro.sky.manager.model.rules.QueryCondition;
 import pro.sky.manager.repository.DynamicRuleRepository;
 import pro.sky.manager.repository.RecommendationsRepository;
 
