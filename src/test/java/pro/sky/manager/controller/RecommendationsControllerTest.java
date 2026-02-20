@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 import pro.sky.manager.service.RecommendationService;
 
 import java.util.Collections;

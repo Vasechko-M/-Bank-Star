@@ -1,6 +1,6 @@
 package pro.sky.manager.repository;
 
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 
 import java.util.Optional;
 import java.util.UUID;

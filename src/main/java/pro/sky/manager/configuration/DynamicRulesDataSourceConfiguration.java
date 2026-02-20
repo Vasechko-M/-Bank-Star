@@ -24,19 +24,32 @@ import java.util.HashMap;
 )
 public class DynamicRulesDataSourceConfiguration {
 
-    @Bean(name = "defaultDataSource")
+
+    @Primary
+    @Bean(name = "defaultDataSourceProperties")
     @ConfigurationProperties("spring.datasource")
-    public DataSource defaultDataSource(DataSourceProperties properties) {
-        return properties.initializeDataSourceBuilder().build();
+    public DataSourceProperties defaultDataSourceProperties() {
+        return new DataSourceProperties();
     }
 
+    @Primary
+    @Bean(name = "defaultDataSource")
+    //@ConfigurationProperties("spring.datasource")
+    public DataSource defaultDataSource(
+        @Qualifier("defaultDataSourceProperties") DataSourceProperties properties) {
+        return properties.initializeDataSourceBuilder()
+                .type(HikariDataSource.class)
+                .build();
+    }
+
+    @Primary
     @Bean(name = "defaultEntityManagerFactory")
     public LocalContainerEntityManagerFactoryBean defaultEntityManagerFactory(
             @Qualifier("defaultDataSource") DataSource dataSource) {
 
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
-        em.setPackagesToScan("pro.sky.manager.model");
+        em.setPackagesToScan("pro.sky.manager.model.rules");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
@@ -49,6 +62,7 @@ public class DynamicRulesDataSourceConfiguration {
         return em;
     }
 
+    @Primary
     @Bean(name = "defaultTransactionManager")
     public PlatformTransactionManager defaultTransactionManager(
             @Qualifier("defaultEntityManagerFactory") LocalContainerEntityManagerFactoryBean entityManagerFactory) {

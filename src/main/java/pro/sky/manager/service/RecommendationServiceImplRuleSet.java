@@ -11,7 +11,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationRuleSet;
 
 /**

@@ -1,7 +1,7 @@
 package pro.sky.manager.dto;
 
 import org.junit.jupiter.api.Test;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 
 import java.util.UUID;
 

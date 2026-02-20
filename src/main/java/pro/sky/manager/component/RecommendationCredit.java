@@ -1,7 +1,7 @@
     package pro.sky.manager.component;
 
     import org.springframework.stereotype.Component;
-    import pro.sky.manager.model.RecommendationDTO;
+    import pro.sky.manager.model.rules.RecommendationDTO;
     import pro.sky.manager.repository.RecommendationRuleSet;
     import pro.sky.manager.repository.RecommendationsRepository;
 

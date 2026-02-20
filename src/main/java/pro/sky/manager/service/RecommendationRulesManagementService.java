@@ -3,7 +3,7 @@ package pro.sky.manager.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationsRepository;
 
 import java.util.UUID;

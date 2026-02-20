@@ -1,4 +1,4 @@
-package pro.sky.manager.model;
+package pro.sky.manager.model.rules;
 
 import jakarta.persistence.*;
 import lombok.Data;
