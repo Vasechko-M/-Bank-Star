@@ -7,22 +7,24 @@ import com.pengrad.telegrambot.request.SendMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 /**
  * Сервис для обработки обновлений от Telegram
  */
-
 @Service
 @RequiredArgsConstructor
 public class TelegramUpdateHandler {
 
     private final TelegramBot telegramBot;
+    private final UserRecommendationService userRecommendationService;
 
     /**
      * Обработка входящего обновления (Update) от Telegram
      */
     public void handleUpdate(Update update) {
         if (update.message() == null) {
-            return; // Игнорируем обновления без сообщений
+            return;
         }
         Message message = update.message();
         Long chatId = message.chat().id();
@@ -34,22 +36,47 @@ public class TelegramUpdateHandler {
 
         if (text.equals("/start")) {
             sendWelcomeMessage(chatId);
-        } else if (text.startsWith("/recommend")) {
-            // Пока заглушка — позже тут нужно доделать
-            telegramBot.execute(new SendMessage(chatId, "Эта команда будет реализована позже."));
-        } else {
-            telegramBot.execute(new SendMessage(chatId, "Команда не распознана. Введите /start для начала."));
+            return;
+        }
+
+        try {
+            java.util.UUID uuid = java.util.UUID.fromString(text.trim());
+            String fullName = getFullNameByUUID(uuid.toString());
+            if (fullName == null || fullName.isEmpty()) {
+                telegramBot.execute(new SendMessage(chatId, "UUID не найден или некорректен. Попробуйте еще раз, введя ваш UUID."));
+            } else {
+                String recommendation = getRecommendationByUserId(uuid);
+                String messageText = String.format(
+                        "Здравствуйте, %s! Вы успешно зарегистрированы. Ознакомьтесь с рекомендациями для вас:\n%s",
+                        fullName,
+                        recommendation
+                );
+                telegramBot.execute(new SendMessage(chatId, messageText));
+            }
+        } catch (IllegalArgumentException e) {
+            telegramBot.execute(new SendMessage(chatId, "Пожалуйста, введите корректный UUID в формате: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"));
         }
     }
 
     /**
-     * Отправка приветственного сообщения и справки
+     * Отправка приветственного сообщения и инструкции
      */
     private void sendWelcomeMessage(Long chatId) {
-        String welcomeText = "Привет! Я бот с рекомендациями.\n" +
-                "Единственная команда:\n" +
-                "/recommend username\n" +
-                "— выведет рекомендации для пользователя по имени.";
+        String welcomeText = "Здравствуйте! Вас приветствует банк \"Стар\". Пожалуйста, введите ваш UUID.";
         telegramBot.execute(new SendMessage(chatId, welcomeText));
+    }
+
+    /**
+     * Метод для получения имени по UUID
+     */
+    private String getFullNameByUUID(String uuid) {
+        return userRecommendationService.getFullNameById(uuid);
+    }
+
+    /**
+     * Метод для получения рекомендаций по UUID
+     */
+    private String getRecommendationByUserId(UUID userId) {
+        return ("не советую брать кредит, если не имеешь стабильный заработок");
     }
 }
