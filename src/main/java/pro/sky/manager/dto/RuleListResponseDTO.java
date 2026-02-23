@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -11,4 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 public class RuleListResponseDTO {
     private List<RuleResponseDTO> data;
+
+    public List<RuleResponseDTO> getRules() {
+        return data;
+    }
 }
