@@ -6,8 +6,11 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import pro.sky.manager.model.rules.RecommendationDTO;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Сервис для обработки обновлений от Telegram
@@ -18,6 +21,8 @@ public class TelegramUpdateHandler {
 
     private final TelegramBot telegramBot;
     private final UserRecommendationService userRecommendationService;
+    private final RecommendationService recommendationService;
+    private final DynamicRuleService dynamicRuleService;
 
     /**
      * Обработка входящего обновления (Update) от Telegram
@@ -77,6 +82,15 @@ public class TelegramUpdateHandler {
      * Метод для получения рекомендаций по UUID
      */
     private String getRecommendationByUserId(UUID userId) {
-        return ("не советую брать кредит, если не имеешь стабильный заработок");
+        List<RecommendationDTO> recommendationsDto = recommendationService.getRecommendationsByUserId(userId);
+        List<String> recommendations = recommendationsDto.stream()
+                .map(RecommendationDTO::toString)
+                .collect(Collectors.toList());
+        List<String> dynamicRecommendations = dynamicRuleService.getRecommendationsFromDynamicRules(userId).stream()
+                .map(RecommendationDTO::toString)
+                .collect(Collectors.toList());
+
+        recommendations.addAll(dynamicRecommendations);
+        return String.join("\n", recommendations);
     }
 }
