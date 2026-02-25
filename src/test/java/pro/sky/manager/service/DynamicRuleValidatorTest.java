@@ -1,8 +1,8 @@
 package pro.sky.manager.service;
 
 import org.junit.jupiter.api.Test;
-import pro.sky.manager.model.rules.QueryCondition;
-import pro.sky.manager.model.rules.QueryType;
+import pro.sky.manager.model.QueryCondition;
+import pro.sky.manager.model.QueryType;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 

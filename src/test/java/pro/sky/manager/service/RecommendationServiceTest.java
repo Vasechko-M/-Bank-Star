@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import pro.sky.manager.model.rules.RecommendationDTO;
+import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationRuleSet;
 
 import java.util.List;

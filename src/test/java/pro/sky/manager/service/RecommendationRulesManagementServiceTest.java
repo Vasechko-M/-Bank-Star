@@ -2,7 +2,7 @@ package pro.sky.manager.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pro.sky.manager.model.rules.RecommendationDTO;
+import pro.sky.manager.model.RecommendationDTO;
 import pro.sky.manager.repository.RecommendationsRepository;
 
 import java.util.UUID;

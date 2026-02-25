@@ -1,7 +1,7 @@
 package pro.sky.manager.repository;
 
-import pro.sky.manager.model.rules.DynamicRule;
-import pro.sky.manager.model.rules.RecommendationDTO;
+import pro.sky.manager.model.DynamicRule;
+import pro.sky.manager.model.RecommendationDTO;
 
 import java.util.Optional;
 import java.util.UUID;
