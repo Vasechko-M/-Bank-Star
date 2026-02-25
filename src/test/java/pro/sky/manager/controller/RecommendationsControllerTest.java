@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 import pro.sky.manager.service.DynamicRuleService;
 import pro.sky.manager.service.RecommendationService;
 

@@ -9,7 +9,7 @@ import pro.sky.manager.cache.QueryKey;
 import pro.sky.manager.cache.TransactionSumCache;
 import pro.sky.manager.cache.UserActivityCache;
 import pro.sky.manager.dto.DepositWithdrawSum;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 
 import java.util.List;
 import java.util.UUID;

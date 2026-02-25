@@ -1,8 +1,8 @@
 package pro.sky.manager.dto;
 
 import org.springframework.stereotype.Component;
-import pro.sky.manager.model.DynamicRule;
-import pro.sky.manager.model.QueryCondition;
+import pro.sky.manager.model.rules.DynamicRule;
+import pro.sky.manager.model.rules.QueryCondition;
 
 import java.util.List;
 import java.util.stream.Collectors;

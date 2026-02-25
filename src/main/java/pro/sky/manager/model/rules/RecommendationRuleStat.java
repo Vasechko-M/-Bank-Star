@@ -1,4 +1,4 @@
-package pro.sky.manager.model;
+package pro.sky.manager.model.rules;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;

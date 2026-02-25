@@ -3,7 +3,7 @@ package pro.sky.manager.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.model.rules.RecommendationDTO;
 import pro.sky.manager.service.RecommendationService;
 import pro.sky.manager.service.DynamicRuleService;
 

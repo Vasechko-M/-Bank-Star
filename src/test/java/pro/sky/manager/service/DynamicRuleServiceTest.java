@@ -3,7 +3,10 @@ package pro.sky.manager.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import pro.sky.manager.dto.DepositWithdrawSum;
-import pro.sky.manager.model.*;
+import pro.sky.manager.model.rules.DynamicRule;
+import pro.sky.manager.model.rules.QueryCondition;
+import pro.sky.manager.model.rules.QueryType;
+import pro.sky.manager.model.rules.RecommendationDTO;
 import pro.sky.manager.repository.DynamicRuleRepository;
 import pro.sky.manager.repository.RecommendationsRepository;
 
