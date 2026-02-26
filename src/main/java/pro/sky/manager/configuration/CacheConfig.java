@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import pro.sky.manager.cache.CacheKey;
 import pro.sky.manager.cache.QueryKey;
 import pro.sky.manager.dto.DepositWithdrawSum;
+import pro.sky.manager.service.CacheService;
 
 import java.util.List;
 import java.util.UUID;
@@ -50,6 +51,7 @@ public class CacheConfig {
                 .maximumSize(1000)
                 .build();
     }
+
     @Bean
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager("recommendationCache", "userRecommendations");
@@ -61,5 +63,19 @@ public class CacheConfig {
         return Caffeine.newBuilder()
                 .expireAfterAccess(10, TimeUnit.MINUTES)
                 .maximumSize(1024 * 1024 * 256);
+    }
+
+    @Bean
+    public CacheService cacheService(
+            Cache<UUID, List<String>> userProductTypesCacheBean,
+            Cache<CacheKey, Boolean> userProductCacheBean,
+            Cache<QueryKey, Double> transactionSumCacheBean,
+            Cache<CacheKey, DepositWithdrawSum> depositWithdrawCacheBean) {
+        return new CacheService(
+                userProductTypesCacheBean,
+                userProductCacheBean,
+                transactionSumCacheBean,
+                depositWithdrawCacheBean
+        );
     }
 }
