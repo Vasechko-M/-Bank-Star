@@ -49,6 +49,8 @@ public class RecommendationDTO {
         this.productText = productText;
     }
 
+
+
     public UUID getId() {
         return id;
     }

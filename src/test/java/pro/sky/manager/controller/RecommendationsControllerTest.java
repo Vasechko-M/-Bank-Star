@@ -1,113 +1,103 @@
 package pro.sky.manager.controller;
 
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 import pro.sky.manager.model.RecommendationDTO;
+import pro.sky.manager.service.DynamicRuleService;
 import pro.sky.manager.service.RecommendationService;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(RecommendationsController.class)
-public class RecommendationsControllerTest {
+class RecommendationsControllerTest {
 
-    @Autowired
-    MockMvc mockMvc;
+    @Mock
+    private RecommendationService recommendationService;
 
-    @MockitoBean
-    RecommendationService recommendationService;
+    @Mock
+    private DynamicRuleService dynamicRuleService;
 
-    @Test
-    void shouldReturnBadRequest_whenUserIdIsEmpty() throws Exception {
-        mockMvc.perform(get("/recommendation/ "))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("User ID cannot be empty"));
+    @InjectMocks
+    private RecommendationsController controller;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
+    // ✅ Успешный сценарий
     @Test
-    void shouldReturnBadRequest_whenUserIdIsInvalidFormat() throws Exception {
-        mockMvc.perform(get("/recommendation/invalid-uuid-string"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Invalid UUID format"))
-                .andExpect(jsonPath("$.received").value("invalid-uuid-string"));
-    }
-
-    @Test
-    void shouldReturnRecommendations_whenUserIdIsValid() throws Exception {
+    void getRecommendations_success() {
         UUID userId = UUID.randomUUID();
 
-        when(recommendationService.checkConditionsForSetRules(userId)).thenReturn(true);
-        when(recommendationService.getRecommendationsByUserId(userId)).thenReturn(Collections.emptyList());
+        RecommendationDTO dto1 = mock(RecommendationDTO.class);
+        RecommendationDTO dto2 = mock(RecommendationDTO.class);
 
-        mockMvc.perform(get("/recommendation/" + userId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user_id").value(userId.toString()))
-                .andExpect(jsonPath("$.count").value(0))
-                .andExpect(jsonPath("$.recommendations").isArray());
+        when(recommendationService.getRecommendationsByUserId(userId))
+                .thenReturn(List.of(dto1));
+
+        when(dynamicRuleService.getRecommendationsFromDynamicRules(userId))
+                .thenReturn(List.of(dto2));
+
+        ResponseEntity<Map<String, Object>> response =
+                controller.getRecommendations(userId.toString());
+
+        assertEquals(200, response.getStatusCodeValue());
+
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+
+        assertEquals(userId.toString(), body.get("user_id"));
+        assertEquals(2, body.get("count"));
+
+        List<?> recommendations = (List<?>) body.get("recommendations");
+        assertEquals(2, recommendations.size());
+
+        verify(recommendationService).getRecommendationsByUserId(userId);
+        verify(dynamicRuleService).getRecommendationsFromDynamicRules(userId);
     }
 
+    // ❌ Неверный UUID
     @Test
-    void shouldReturnRecommendations_whenServiceReturnsData() throws Exception {
-        UUID userId = UUID.randomUUID();
-        RecommendationDTO recommendation1 = new RecommendationDTO(UUID.randomUUID(), "Rec 1", "Text 1");
-        RecommendationDTO recommendation2 = new RecommendationDTO(UUID.randomUUID(), "Rec 2", "Text 2");
-        List<RecommendationDTO> recommendations = List.of(recommendation1, recommendation2);
+    void getRecommendations_invalidUuid() {
+        ResponseEntity<Map<String, Object>> response =
+                controller.getRecommendations("invalid-uuid");
 
-        when(recommendationService.checkConditionsForSetRules(userId)).thenReturn(true);
-        when(recommendationService.getRecommendationsByUserId(userId)).thenReturn(recommendations);
+        assertEquals(400, response.getStatusCodeValue());
 
-        mockMvc.perform(get("/recommendation/" + userId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user_id").value(userId.toString()))
-                .andExpect(jsonPath("$.count").value(2))
-                .andExpect(jsonPath("$.recommendations").isArray())
-                .andExpect(jsonPath("$.recommendations[0].name").value("Rec 1"))
-                .andExpect(jsonPath("$.recommendations[1].name").value("Rec 2"));
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Invalid UUID format", body.get("error"));
+
+        verifyNoInteractions(recommendationService);
+        verifyNoInteractions(dynamicRuleService);
     }
 
+    // 💥 Исключение внутри сервиса
     @Test
-    void shouldReturnNoRecommendations_whenRulesNotApplicable() throws Exception {
+    void getRecommendations_serviceThrowsException() {
         UUID userId = UUID.randomUUID();
-        when(recommendationService.checkConditionsForSetRules(userId)).thenReturn(false);
 
-        mockMvc.perform(get("/recommendation/" + userId))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.user_id").value(userId.toString()))
-                .andExpect(jsonPath("$.recommendations").value("No"))
-                .andExpect(jsonPath("$.message").value("Условия не выполнены"));
+        when(recommendationService.getRecommendationsByUserId(userId))
+                .thenThrow(new RuntimeException("Database error"));
+
+        ResponseEntity<Map<String, Object>> response =
+                controller.getRecommendations(userId.toString());
+
+        assertEquals(500, response.getStatusCodeValue());
+
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("Error retrieving recommendations", body.get("error"));
+        assertEquals("Database error", body.get("details"));
     }
-
-    @Test
-    void shouldReturnInternalServerError_whenServiceThrowsException() throws Exception {
-        UUID userId = UUID.randomUUID();
-        when(recommendationService.checkConditionsForSetRules(any())).thenThrow(new RuntimeException("Database error"));
-
-        mockMvc.perform(get("/recommendation/" + userId))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Error checking conditions"))
-                .andExpect(jsonPath("$.details").value("Database error"));
-    }
-
-    @Test
-    void shouldReturnInternalServerError_whenGetRecommendationsThrowsException() throws Exception {
-        UUID userId = UUID.randomUUID();
-        when(recommendationService.checkConditionsForSetRules(userId)).thenReturn(true);
-        when(recommendationService.getRecommendationsByUserId(userId)).thenThrow(new RuntimeException("Database error on get"));
-
-        mockMvc.perform(get("/recommendation/" + userId))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("Error retrieving recommendations"))
-                .andExpect(jsonPath("$.details").value("Database error on get"));
-    }
-
 }
