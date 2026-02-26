@@ -1,4 +1,4 @@
-package pro.sky.manager.model.rules;
+package pro.sky.manager.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;

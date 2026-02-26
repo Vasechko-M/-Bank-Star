@@ -6,7 +6,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import pro.sky.manager.model.rules.RecommendationDTO;
+import pro.sky.manager.model.RecommendationDTO;
 
 import java.util.List;
 import java.util.UUID;

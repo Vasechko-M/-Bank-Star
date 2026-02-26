@@ -1,4 +1,4 @@
-package pro.sky.manager.model.rules;
+package pro.sky.manager.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

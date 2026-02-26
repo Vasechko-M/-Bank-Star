@@ -49,7 +49,7 @@ public class DynamicRulesDataSourceConfiguration {
 
         LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
         em.setDataSource(dataSource);
-        em.setPackagesToScan("pro.sky.manager.model.rules");
+        em.setPackagesToScan("pro.sky.manager.model");
 
         HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         em.setJpaVendorAdapter(vendorAdapter);
