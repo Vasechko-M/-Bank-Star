@@ -41,7 +41,7 @@
 | Период | Техлид | Разработчик | Тестировщик | Документовед |
 | :--- | :--- | :--- | :--- | :--- |
 | 26.01 - 01.02 | [@Lutrix79] | [@Vasechko-M] | [@avtandilabildin2] | [@ninanikolaevna] |
-| 02.02 - 08.02 | | | | |
+| 02.02 - 08.02 | [@Vasechko-M] | [@ninanikolaevna] | [@Lutrix79]|  [@avtandilabildin2] |
 | 09.02 - 15.02 | | | | |
 
 *Ответственный за документацию: [@ninanikolaevна]*  
